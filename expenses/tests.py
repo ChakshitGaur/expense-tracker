@@ -124,6 +124,8 @@ class DashboardTests(BaseTestCase):
         Expense.objects.create(user=self.other, amount=Decimal("1000"), date=date(2026, 3, 2))
         data = services.dashboard_data(self.user, today=today)
         self.assertEqual(data["month_total"], Decimal("15.50"))
+        self.assertEqual(str(data["month_total"]), "15.50")  # SQLite SUM must not leak trailing zeros
+        self.assertEqual(str(services.dashboard_data(self.other, today=date(2020, 1, 1))["month_total"]), "0.00")
         self.assertEqual(
             {c["name"]: c["total"] for c in data["by_category"]}, {"Food": 10.0, "Uncategorized": 5.5}
         )

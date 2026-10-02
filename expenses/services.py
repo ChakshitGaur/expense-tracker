@@ -27,7 +27,7 @@ def dashboard_data(user, today=None):
     qs = Expense.objects.filter(user=user)
 
     month_qs = qs.filter(date__gte=this_month, date__lt=add_months(this_month, 1))
-    month_total = month_qs.aggregate(t=Sum("amount"))["t"] or Decimal("0")
+    month_total = (month_qs.aggregate(t=Sum("amount"))["t"] or Decimal("0")).quantize(Decimal("0.01"))
     by_category = [
         {"name": r["category__name"] or "Uncategorized", "total": float(r["t"])}
         for r in month_qs.values("category__name").annotate(t=Sum("amount")).order_by("-t")
