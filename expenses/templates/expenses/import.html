@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Import{% endblock %}
+{% block content %}
+<div class="card" style="max-width:600px;margin:auto">
+  <h1>Import expenses from CSV</h1>
+  <p class="muted">Columns: <code>date</code> (YYYY-MM-DD), <code>amount</code>, <code>category</code> (optional), <code>description</code> (optional). Unknown categories are created. Valid rows are imported even if others fail.</p>
+  <form method="post" enctype="multipart/form-data">{% csrf_token %}
+    {{ form.as_p }}
+    <button>Import</button>
+  </form>
+  {% if errors %}
+    <h3>Problems</h3>
+    <ul class="errorlist">{% for e in errors %}<li>{{ e }}</li>{% endfor %}</ul>
+  {% endif %}
+</div>
+{% endblock %}

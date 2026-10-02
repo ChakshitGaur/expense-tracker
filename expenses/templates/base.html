@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Expense Tracker{% endblock %}</title>
+  <style>
+    :root { --bg:#f6f7fb; --card:#fff; --text:#1f2430; --muted:#6b7280; --accent:#4f46e5; --danger:#dc2626; --border:#e5e7eb; }
+    @media (prefers-color-scheme: dark) {
+      :root { --bg:#0f1117; --card:#181b24; --text:#e8eaf0; --muted:#9aa1b2; --accent:#818cf8; --danger:#f87171; --border:#2a2f3c; }
+    }
+    * { box-sizing: border-box; }
+    body { margin:0; font-family: system-ui, sans-serif; background:var(--bg); color:var(--text); }
+    nav { display:flex; flex-wrap:wrap; gap:16px; align-items:center; padding:12px 24px; background:var(--card); border-bottom:1px solid var(--border); }
+    nav a { color:var(--text); text-decoration:none; }
+    nav a:hover { color:var(--accent); }
+    nav .brand { font-weight:700; margin-right:auto; }
+    nav form { margin:0; }
+    main { max-width:900px; margin:24px auto; padding:0 16px; }
+    .card { background:var(--card); border:1px solid var(--border); border-radius:10px; padding:20px; margin-bottom:20px; }
+    h1 { margin-top:0; }
+    table { width:100%; border-collapse:collapse; }
+    th, td { text-align:left; padding:8px; border-bottom:1px solid var(--border); }
+    .num { text-align:right; font-variant-numeric: tabular-nums; }
+    .muted { color:var(--muted); }
+    .btn, button { background:var(--accent); color:#fff; border:0; padding:8px 14px; border-radius:6px; cursor:pointer; text-decoration:none; font-size:14px; display:inline-block; }
+    .btn.secondary, button.secondary { background:transparent; color:var(--text); border:1px solid var(--border); }
+    .btn.danger, button.danger { background:var(--danger); }
+    input, select, textarea { padding:8px; border:1px solid var(--border); border-radius:6px; background:var(--bg); color:var(--text); font-size:14px; }
+    form p { margin:0 0 12px; display:flex; flex-direction:column; gap:4px; }
+    .errorlist { color:var(--danger); list-style:none; padding:0; margin:0; font-size:13px; }
+    .messages { list-style:none; padding:0; }
+    .messages li { background:#16a34a; color:#fff; padding:10px 14px; border-radius:6px; margin-bottom:12px; }
+    .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:20px; }
+    .big { font-size:2rem; font-weight:700; }
+    .filters { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-bottom:16px; }
+    .actions { display:flex; gap:8px; }
+  </style>
+</head>
+<body>
+  <nav>
+    <a class="brand" href="{% url 'dashboard' %}">💸 Expense Tracker</a>
+    {% if user.is_authenticated %}
+      <a href="{% url 'dashboard' %}">Dashboard</a>
+      <a href="{% url 'expense_list' %}">Expenses</a>
+      <a href="{% url 'category_list' %}">Categories</a>
+      <a href="{% url 'import_csv' %}">Import</a>
+      <a href="{% url 'export_csv' %}">Export</a>
+      <form method="post" action="{% url 'logout' %}">{% csrf_token %}<button class="secondary">Log out ({{ user.username }})</button></form>
+    {% else %}
+      <a href="{% url 'login' %}">Log in</a>
+      <a href="{% url 'signup' %}">Sign up</a>
+    {% endif %}
+  </nav>
+  <main>
+    {% if messages %}<ul class="messages">{% for m in messages %}<li>{{ m }}</li>{% endfor %}</ul>{% endif %}
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>

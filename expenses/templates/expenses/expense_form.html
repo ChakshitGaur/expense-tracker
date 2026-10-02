@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}{% if object %}Edit{% else %}Add{% endif %} expense{% endblock %}
+{% block content %}
+<div class="card" style="max-width:500px;margin:auto">
+  <h1>{% if object %}Edit{% else %}Add{% endif %} expense</h1>
+  <form method="post">{% csrf_token %}
+    {{ form.as_p }}
+    <button>Save</button>
+    <a class="btn secondary" href="{% url 'expense_list' %}">Cancel</a>
+  </form>
+  <p class="muted">Need a new category? <a href="{% url 'category_list' %}">Manage categories</a></p>
+</div>
+{% endblock %}

@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="grid">
+  <div class="card">
+    <div class="muted">Spent this month</div>
+    <div class="big">{{ month_total }}</div>
+    <p><a class="btn" href="{% url 'expense_add' %}">+ Add expense</a></p>
+  </div>
+  <div class="card">
+    <h3 style="margin-top:0">This month by category</h3>
+    {% if by_category %}<canvas id="catChart" height="220"></canvas>{% else %}<p class="muted">No expenses this month yet.</p>{% endif %}
+  </div>
+</div>
+<div class="card">
+  <h3 style="margin-top:0">Last 6 months</h3>
+  <canvas id="trendChart" height="110"></canvas>
+</div>
+<div class="card">
+  <h3 style="margin-top:0">Recent</h3>
+  <table>
+    {% for e in recent %}
+      <tr><td>{{ e.date }}</td><td>{{ e.category|default:"—" }}</td><td>{{ e.description }}</td><td class="num">{{ e.amount }}</td></tr>
+    {% empty %}
+      <tr><td class="muted">Nothing yet. Add your first expense!</td></tr>
+    {% endfor %}
+  </table>
+</div>
+{{ by_category|json_script:"by-category" }}
+{{ trend|json_script:"trend" }}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+<script>
+  const cat = JSON.parse(document.getElementById("by-category").textContent);
+  const trend = JSON.parse(document.getElementById("trend").textContent);
+  const palette = ["#4f46e5","#06b6d4","#f59e0b","#10b981","#ef4444","#8b5cf6","#ec4899","#64748b"];
+  if (window.Chart) {
+    if (cat.length) new Chart(document.getElementById("catChart"), {
+      type: "doughnut",
+      data: { labels: cat.map(c => c.name), datasets: [{ data: cat.map(c => c.total), backgroundColor: palette }] },
+    });
+    new Chart(document.getElementById("trendChart"), {
+      type: "bar",
+      data: { labels: trend.map(t => t.month), datasets: [{ label: "Total", data: trend.map(t => t.total), backgroundColor: "#4f46e5" }] },
+      options: { plugins: { legend: { display: false } } },
+    });
+  }
+</script>
+{% endblock %}
