@@ -12,6 +12,20 @@
   </div>
 </div>
 <div class="card">
+  <div class="budget-line"><h3 style="margin:0">Budgets this month</h3><a href="{% url 'budget_list' %}">Manage budgets</a></div>
+  {% for b in budgets %}
+    <div style="margin-top:14px">
+      <div class="budget-line">
+        <strong>{{ b.category }}</strong>
+        <span class="lvl-{{ b.level }}">{{ b.spent }} / {{ b.limit }} ({{ b.percent }}%){% if b.level == "over" %} &middot; over budget{% elif b.level == "warning" %} &middot; near limit{% endif %}</span>
+      </div>
+      {% include "expenses/_bar.html" with row=b %}
+    </div>
+  {% empty %}
+    <p class="muted">No budgets yet. <a href="{% url 'budget_list' %}">Set a monthly limit</a> for a category to track it here.</p>
+  {% endfor %}
+</div>
+<div class="card">
   <h3 style="margin-top:0">Last 6 months</h3>
   <canvas id="trendChart" height="110"></canvas>
 </div>

@@ -8,8 +8,8 @@ from django.urls import reverse_lazy
 from django.views.generic import CreateView, DeleteView, ListView, TemplateView, UpdateView
 
 from . import services
-from .forms import CategoryForm, ExpenseForm, ImportForm, SignUpForm
-from .models import Category, Expense
+from .forms import BudgetForm, CategoryForm, ExpenseForm, ImportForm, SignUpForm
+from .models import Budget, Category, Expense
 
 
 class UserFormKwargsMixin:
@@ -64,7 +64,19 @@ class ExpenseListView(OwnedExpenseMixin, ListView):
         return ctx
 
 
-class ExpenseCreateView(LoginRequiredMixin, UserFormKwargsMixin, CreateView):
+class BudgetAlertMixin:
+    """After saving an expense, warn if its category budget is nearly used up or exceeded."""
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        alert = services.budget_alert(self.request.user, self.object)
+        if alert:
+            level, text = alert
+            (messages.error if level == "over" else messages.warning)(self.request, text)
+        return response
+
+
+class ExpenseCreateView(BudgetAlertMixin, LoginRequiredMixin, UserFormKwargsMixin, CreateView):
     model = Expense
     form_class = ExpenseForm
     success_url = reverse_lazy("expense_list")
@@ -74,7 +86,7 @@ class ExpenseCreateView(LoginRequiredMixin, UserFormKwargsMixin, CreateView):
         return super().form_valid(form)
 
 
-class ExpenseUpdateView(OwnedExpenseMixin, UserFormKwargsMixin, UpdateView):
+class ExpenseUpdateView(BudgetAlertMixin, OwnedExpenseMixin, UserFormKwargsMixin, UpdateView):
     form_class = ExpenseForm
     success_url = reverse_lazy("expense_list")
 
@@ -102,6 +114,42 @@ class CategoryListView(LoginRequiredMixin, UserFormKwargsMixin, CreateView):
 class CategoryDeleteView(LoginRequiredMixin, DeleteView):
     model = Category
     success_url = reverse_lazy("category_list")
+
+    def get_queryset(self):
+        return super().get_queryset().filter(user=self.request.user)
+
+
+class BudgetListView(LoginRequiredMixin, UserFormKwargsMixin, CreateView):
+    """Lists the user's budgets with this month's progress, and holds the 'add budget' form."""
+
+    model = Budget
+    form_class = BudgetForm
+    template_name = "expenses/budget_list.html"
+    success_url = reverse_lazy("budget_list")
+
+    def form_valid(self, form):
+        form.instance.user = self.request.user
+        return super().form_valid(form)
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx["budgets"] = services.budget_status(self.request.user)
+        ctx["has_categories"] = Category.objects.filter(user=self.request.user).exists()
+        return ctx
+
+
+class BudgetUpdateView(LoginRequiredMixin, UserFormKwargsMixin, UpdateView):
+    model = Budget
+    form_class = BudgetForm
+    success_url = reverse_lazy("budget_list")
+
+    def get_queryset(self):
+        return super().get_queryset().filter(user=self.request.user)
+
+
+class BudgetDeleteView(LoginRequiredMixin, DeleteView):
+    model = Budget
+    success_url = reverse_lazy("budget_list")
 
     def get_queryset(self):
         return super().get_queryset().filter(user=self.request.user)
