@@ -9,6 +9,8 @@ A multi-user Django app to log expenses, organise them by category, and see wher
 <details>
 <summary>More screenshots</summary>
 
+![Monthly budgets with progress bars](docs/screenshots/budgets.png)
+
 ![Expense list with filters](docs/screenshots/expenses.png)
 
 </details>
@@ -19,9 +21,10 @@ A multi-user Django app to log expenses, organise them by category, and see wher
 - **Accounts:** sign up and log in; every user sees only their own data (other users' records return 404)
 - **Expenses:** add, edit and delete; filter by month and category; paginated list
 - **Categories:** personal categories per user (case-insensitive, no duplicates)
-- **Dashboard:** this month's total, spending by category (doughnut chart) and the last 6 months (bar chart)
+- **Monthly budgets:** set a limit per category; progress bars on the dashboard turn amber at 80% and red when you go over, and adding an expense that crosses a threshold shows a warning message
+- **Dashboard:** this month's total, budget progress, spending by category (doughnut chart) and the last 6 months (bar chart)
 - **CSV import / export:** valid rows are imported even if others fail, and every bad row is reported with its line number
-- **Tested:** 21 automated tests covering permissions, validation, dashboard maths and CSV round-trips
+- **Tested:** 43 automated tests covering permissions, validation, dashboard and budget maths, warnings and CSV round-trips, run on every pull request by GitHub Actions
 
 ## Tech stack
 Python, Django 6, SQLite, Chart.js (loaded from a CDN), Django's built-in authentication.
@@ -65,13 +68,12 @@ Columns: `date` (YYYY-MM-DD), `amount` (positive number), `category` (optional),
 | Path | What it does |
 |---|---|
 | `expenses/models.py` | `Category` and `Expense` models |
-| `expenses/services.py` | Dashboard aggregation and CSV logic (no HTTP code, easy to test) |
+| `expenses/services.py` | Dashboard, budget and CSV logic (no HTTP code, easy to test) |
 | `expenses/views.py`, `forms.py`, `urls.py` | The web layer |
 | `expenses/templates/` | HTML templates |
 | `samples/` | Example CSV |
 
 ## Ideas for next steps
 - REST API with token authentication
-- Per-category monthly budgets with warnings
 - Spending forecast for next month
 - Lint and format checks in CI

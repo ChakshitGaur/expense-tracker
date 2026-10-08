@@ -31,6 +31,17 @@
     .errorlist { color:var(--danger); list-style:none; padding:0; margin:0; font-size:13px; }
     .messages { list-style:none; padding:0; }
     .messages li { background:#16a34a; color:#fff; padding:10px 14px; border-radius:6px; margin-bottom:12px; }
+    .messages li.warning { background:#d97706; }
+    .messages li.error { background:var(--danger); }
+    .bar { background:var(--border); border-radius:999px; height:10px; overflow:hidden; }
+    .bar > span { display:block; height:100%; background:var(--accent); }
+    .bar.warning > span { background:#f59e0b; }
+    .bar.over > span { background:var(--danger); }
+    main a { color:var(--accent); }
+    .grid { align-items:start; }
+    .budget-line { display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:6px; }
+    .lvl-warning { color:#d97706; font-weight:600; }
+    .lvl-over { color:var(--danger); font-weight:600; }
     .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:20px; }
     .big { font-size:2rem; font-weight:700; }
     .filters { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-bottom:16px; }
@@ -44,6 +55,7 @@
       <a href="{% url 'dashboard' %}">Dashboard</a>
       <a href="{% url 'expense_list' %}">Expenses</a>
       <a href="{% url 'category_list' %}">Categories</a>
+      <a href="{% url 'budget_list' %}">Budgets</a>
       <a href="{% url 'import_csv' %}">Import</a>
       <a href="{% url 'export_csv' %}">Export</a>
       <form method="post" action="{% url 'logout' %}">{% csrf_token %}<button class="secondary">Log out ({{ user.username }})</button></form>
@@ -53,7 +65,7 @@
     {% endif %}
   </nav>
   <main>
-    {% if messages %}<ul class="messages">{% for m in messages %}<li>{{ m }}</li>{% endfor %}</ul>{% endif %}
+    {% if messages %}<ul class="messages">{% for m in messages %}<li class="{{ m.tags }}">{{ m }}</li>{% endfor %}</ul>{% endif %}
     {% block content %}{% endblock %}
   </main>
 </body>

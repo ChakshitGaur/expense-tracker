@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Budgets{% endblock %}
+{% block content %}
+<div class="card">
+  <h1>Monthly budgets</h1>
+  <p class="muted">Set a spending limit per category. It applies every month, and you get a warning at 80% and when you go over.</p>
+  {% if not has_categories %}
+    <p>You need a category first. <a href="{% url 'category_list' %}">Create one</a>.</p>
+  {% elif form.category.field.queryset.exists %}
+    <form method="post">{% csrf_token %}
+      {{ form.as_p }}
+      <button>Add budget</button>
+    </form>
+  {% else %}
+    <p class="muted">Every category already has a budget.</p>
+  {% endif %}
+</div>
+
+<div class="card">
+  <h3 style="margin-top:0">This month</h3>
+  {% for b in budgets %}
+    <div style="margin-bottom:18px">
+      <div class="budget-line">
+        <strong>{{ b.category }}</strong>
+        <span class="lvl-{{ b.level }}">{{ b.spent }} / {{ b.limit }} ({{ b.percent }}%){% if b.level == "over" %} &middot; over budget{% elif b.level == "warning" %} &middot; near limit{% endif %}</span>
+      </div>
+      {% include "expenses/_bar.html" with row=b %}
+      <div class="actions" style="margin-top:8px">
+        <a class="btn secondary" href="{% url 'budget_edit' b.budget.pk %}">Edit limit</a>
+        <a class="btn danger" href="{% url 'budget_delete' b.budget.pk %}">Delete</a>
+      </div>
+    </div>
+  {% empty %}
+    <p class="muted">No budgets yet.</p>
+  {% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card" style="max-width:500px;margin:auto">
+  <h1>Delete the {{ object.category }} budget?</h1>
+  <p class="muted">Your expenses are not affected. Only the limit is removed.</p>
+  <form method="post">{% csrf_token %}
+    <button class="danger">Yes, delete</button>
+    <a class="btn secondary" href="{% url 'budget_list' %}">Cancel</a>
+  </form>
+</div>
+{% endblock %}

@@ -8,7 +8,8 @@ Django 6 app, single app `expenses`, SQLite.
 - Run: `.venv\Scripts\python manage.py runserver` (needs a `.env` with `DJANGO_DEBUG=1`; copy `.env.example`)
 
 ## Conventions
-- Business logic (aggregation, CSV) lives in `expenses/services.py`, not in views.
+- Business logic (aggregation, budgets, CSV) lives in `expenses/services.py`, not in views.
+- Budget percentages round down and the warning threshold is `BUDGET_WARNING_PERCENT`; tests for budgets are in `expenses/test_budgets.py`.
 - Every query on Expense/Category must be filtered by `request.user`; other users' objects should 404.
 - Add a test for every new view or service function.
 - CI (`.github/workflows/tests.yml`) runs `check`, a missing-migrations check and the tests on every PR; keep it green.

@@ -6,9 +6,10 @@ from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 from django.urls import reverse
+from django.utils import timezone
 
 from . import services
-from .models import Category, Expense
+from .models import Budget, Category, Expense
 
 User = get_user_model()
 
