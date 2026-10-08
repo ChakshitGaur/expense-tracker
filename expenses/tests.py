@@ -184,3 +184,11 @@ class CsvTests(BaseTestCase):
         self.upload(buf.getvalue())
         e = Expense.objects.get()
         self.assertEqual((e.amount, e.description, e.category.name), (Decimal("4.20"), "Tea", "Food"))
+
+
+class CiDemoTests(TestCase):
+    """DEMO ONLY: this test fails on purpose so you can see what a red cross in CI looks like.
+    The pull request that contains it must be closed, never merged."""
+
+    def test_intentional_failure(self):
+        self.assertEqual(2 + 2, 5, "This failure is deliberate (CI demo).")
