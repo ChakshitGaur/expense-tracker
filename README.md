@@ -1,5 +1,7 @@
 # Expense Tracker
 
+[![Tests](https://github.com/ChakshitGaur/expense-tracker/actions/workflows/tests.yml/badge.svg)](https://github.com/ChakshitGaur/expense-tracker/actions/workflows/tests.yml)
+
 A multi-user Django app to log expenses, organise them by category, and see where the money goes, with a charts dashboard and CSV import/export.
 
 ![Dashboard](docs/screenshots/dashboard.png)
@@ -72,4 +74,4 @@ Columns: `date` (YYYY-MM-DD), `amount` (positive number), `category` (optional),
 - REST API with token authentication
 - Per-category monthly budgets with warnings
 - Spending forecast for next month
-- GitHub Actions to run the tests on every pull request
+- Lint and format checks in CI
