@@ -1,60 +1,133 @@
 {% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
 {% block content %}
+<div class="page-head">
+  <div>
+    <h1>Hi, {{ user.username }} 👋</h1>
+    <div class="muted">Here's where your money went this month.</div>
+  </div>
+  <a class="btn" href="{% url 'expense_add' %}">+ Add expense</a>
+</div>
+
+<div class="stats">
+  <div class="card stat">
+    <div class="label">Spent this month</div>
+    <div class="value">{{ month_total }}</div>
+    <div class="hint">
+      {% if month_change_percent is None %}<span class="muted">Nothing last month to compare with</span>
+      {% elif month_change_percent > 0 %}<span class="up">▲ {{ month_change_percent }}%</span> <span class="muted">vs last month</span>
+      {% elif month_change_percent < 0 %}<span class="down">▼ {{ month_change_percent|stringformat:"d"|slice:"1:" }}%</span> <span class="muted">vs last month</span>
+      {% else %}<span class="muted">Same as last month</span>{% endif %}
+    </div>
+  </div>
+  <div class="card stat">
+    <div class="label">Last month</div>
+    <div class="value">{{ last_month_total }}</div>
+    <div class="hint muted">Total for the previous month</div>
+  </div>
+  <div class="card stat">
+    <div class="label">Top category</div>
+    {% with top=by_category|first %}
+      <div class="value">{% if top %}{{ top.name }}{% else %}—{% endif %}</div>
+      <div class="hint muted">{% if top %}{{ top.total|floatformat:2 }} this month{% else %}No spending yet{% endif %}</div>
+    {% endwith %}
+  </div>
+  <div class="card stat">
+    <div class="label">Budgets</div>
+    {% if budgets %}
+      <div class="value">{{ budgets|length }}</div>
+      <div class="hint">
+        {% if budgets_over %}<span class="lvl-over">{{ budgets_over }} over</span>{% endif %}
+        {% if budgets_over and budgets_warning %}<span class="muted">·</span>{% endif %}
+        {% if budgets_warning %}<span class="lvl-warning">{{ budgets_warning }} near limit</span>{% endif %}
+        {% if not budgets_over and not budgets_warning %}<span class="down">All on track</span>{% endif %}
+      </div>
+    {% else %}
+      <div class="value">—</div>
+      <div class="hint"><a href="{% url 'budget_list' %}">Set a budget</a></div>
+    {% endif %}
+  </div>
+</div>
+
 <div class="grid">
   <div class="card">
-    <div class="muted">Spent this month</div>
-    <div class="big">{{ month_total }}</div>
-    <p><a class="btn" href="{% url 'expense_add' %}">+ Add expense</a></p>
+    <div class="card-head"><h3>This month by category</h3></div>
+    {% if by_category %}
+      <div style="position:relative;height:240px"><canvas id="catChart" aria-label="Spending by category this month" role="img"></canvas></div>
+    {% else %}
+      <div class="empty"><span class="icon" aria-hidden="true">🍩</span>No expenses this month yet.</div>
+    {% endif %}
   </div>
   <div class="card">
-    <h3 style="margin-top:0">This month by category</h3>
-    {% if by_category %}<canvas id="catChart" height="220"></canvas>{% else %}<p class="muted">No expenses this month yet.</p>{% endif %}
+    <div class="card-head"><h3>Budgets this month</h3><a href="{% url 'budget_list' %}">Manage</a></div>
+    {% for b in budgets %}
+      <div class="budget-row">
+        <div class="budget-line">
+          <strong>{{ b.category }}</strong>
+          <span class="lvl-{{ b.level }}">{{ b.spent }} / {{ b.limit }} ({{ b.percent }}%){% if b.level == "over" %} &middot; over budget{% elif b.level == "warning" %} &middot; near limit{% endif %}</span>
+        </div>
+        {% include "expenses/_bar.html" with row=b %}
+      </div>
+    {% empty %}
+      <div class="empty"><span class="icon" aria-hidden="true">🎯</span>No budgets yet. <a href="{% url 'budget_list' %}">Set a monthly limit</a> for a category to track it here.</div>
+    {% endfor %}
   </div>
 </div>
+
 <div class="card">
-  <div class="budget-line"><h3 style="margin:0">Budgets this month</h3><a href="{% url 'budget_list' %}">Manage budgets</a></div>
-  {% for b in budgets %}
-    <div style="margin-top:14px">
-      <div class="budget-line">
-        <strong>{{ b.category }}</strong>
-        <span class="lvl-{{ b.level }}">{{ b.spent }} / {{ b.limit }} ({{ b.percent }}%){% if b.level == "over" %} &middot; over budget{% elif b.level == "warning" %} &middot; near limit{% endif %}</span>
-      </div>
-      {% include "expenses/_bar.html" with row=b %}
+  <div class="card-head"><h3>Last 6 months</h3></div>
+  <div style="position:relative;height:220px"><canvas id="trendChart" aria-label="Total spending for each of the last 6 months" role="img"></canvas></div>
+</div>
+
+<div class="card">
+  <div class="card-head"><h3>Recent expenses</h3><a href="{% url 'expense_list' %}">View all</a></div>
+  {% if recent %}
+    <div class="table-wrap">
+      <table>
+        <tbody>
+          {% for e in recent %}
+            <tr>
+              <td class="nowrap muted">{{ e.date }}</td>
+              <td class="hide-sm">{% if e.category %}<span class="pill">{{ e.category }}</span>{% else %}<span class="pill none">Uncategorized</span>{% endif %}</td>
+              <td>{{ e.description|default:e.category|default:"—" }}</td>
+              <td class="num amount">{{ e.amount }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
     </div>
-  {% empty %}
-    <p class="muted">No budgets yet. <a href="{% url 'budget_list' %}">Set a monthly limit</a> for a category to track it here.</p>
-  {% endfor %}
+  {% else %}
+    <div class="empty"><span class="icon" aria-hidden="true">🧾</span>Nothing yet. <a href="{% url 'expense_add' %}">Add your first expense!</a></div>
+  {% endif %}
 </div>
-<div class="card">
-  <h3 style="margin-top:0">Last 6 months</h3>
-  <canvas id="trendChart" height="110"></canvas>
-</div>
-<div class="card">
-  <h3 style="margin-top:0">Recent</h3>
-  <table>
-    {% for e in recent %}
-      <tr><td>{{ e.date }}</td><td>{{ e.category|default:"—" }}</td><td>{{ e.description }}</td><td class="num">{{ e.amount }}</td></tr>
-    {% empty %}
-      <tr><td class="muted">Nothing yet. Add your first expense!</td></tr>
-    {% endfor %}
-  </table>
-</div>
+
 {{ by_category|json_script:"by-category" }}
 {{ trend|json_script:"trend" }}
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.js"></script>
 <script>
   const cat = JSON.parse(document.getElementById("by-category").textContent);
   const trend = JSON.parse(document.getElementById("trend").textContent);
-  const palette = ["#4f46e5","#06b6d4","#f59e0b","#10b981","#ef4444","#8b5cf6","#ec4899","#64748b"];
   if (window.Chart) {
+    // Read colours from the page's CSS variables so the charts follow light/dark mode.
+    const css = getComputedStyle(document.documentElement);
+    const v = name => css.getPropertyValue(name).trim();
+    const dark = matchMedia("(prefers-color-scheme: dark)").matches;
+    const palette = dark
+      ? ["#8b8cf8","#22d3ee","#fbbf24","#34d399","#f87171","#c084fc","#f472b6","#94a3b8"]
+      : ["#4f46e5","#0891b2","#d97706","#059669","#dc2626","#7c3aed","#db2777","#64748b"];
+    Chart.defaults.color = v("--muted");
+    Chart.defaults.borderColor = v("--border");
+    Chart.defaults.font.family = getComputedStyle(document.body).fontFamily;
+
     if (cat.length) new Chart(document.getElementById("catChart"), {
       type: "doughnut",
-      data: { labels: cat.map(c => c.name), datasets: [{ data: cat.map(c => c.total), backgroundColor: palette }] },
+      data: { labels: cat.map(c => c.name), datasets: [{ data: cat.map(c => c.total), backgroundColor: palette, borderColor: v("--card"), borderWidth: 2 }] },
+      options: { maintainAspectRatio: false, cutout: "62%", plugins: { legend: { position: "right", labels: { usePointStyle: true, boxWidth: 8 } } } },
     });
     new Chart(document.getElementById("trendChart"), {
       type: "bar",
-      data: { labels: trend.map(t => t.month), datasets: [{ label: "Total", data: trend.map(t => t.total), backgroundColor: "#4f46e5" }] },
-      options: { plugins: { legend: { display: false } } },
+      data: { labels: trend.map(t => t.month), datasets: [{ label: "Total", data: trend.map(t => t.total), backgroundColor: v("--accent"), borderRadius: 6, maxBarThickness: 48 }] },
+      options: { maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false } }, y: { beginAtZero: true } } },
     });
   }
 </script>

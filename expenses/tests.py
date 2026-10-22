@@ -134,6 +134,40 @@ class DashboardTests(BaseTestCase):
                          ["Oct 2025", "Nov 2025", "Dec 2025", "Jan 2026", "Feb 2026", "Mar 2026"])
         self.assertEqual([t["total"] for t in data["trend"]], [0, 0, 0, 20.0, 0, 15.5])
 
+    def test_dashboard_month_comparison(self):
+        today = date(2026, 3, 15)
+        data = services.dashboard_data(self.user, today=today)
+        self.assertEqual(str(data["last_month_total"]), "0.00")
+        self.assertIsNone(data["month_change_percent"])  # nothing last month: no percentage
+
+        Expense.objects.create(user=self.user, amount=Decimal("30"), date=date(2026, 2, 10))
+        Expense.objects.create(user=self.user, amount=Decimal("20"), date=date(2026, 3, 1))
+        Expense.objects.create(user=self.other, amount=Decimal("500"), date=date(2026, 2, 1))
+        data = services.dashboard_data(self.user, today=today)
+        self.assertEqual(str(data["last_month_total"]), "30.00")
+        self.assertEqual(data["month_change_percent"], -33)
+
+        Expense.objects.create(user=self.user, amount=Decimal("25"), date=date(2026, 3, 2))
+        self.assertEqual(services.dashboard_data(self.user, today=today)["month_change_percent"], 50)
+
+    def test_dashboard_budget_counts(self):
+        food = Category.objects.create(user=self.user, name="Food")
+        rent = Category.objects.create(user=self.user, name="Rent")
+        Budget.objects.create(user=self.user, category=food, monthly_limit=Decimal("10"))
+        Budget.objects.create(user=self.user, category=rent, monthly_limit=Decimal("100"))
+        Expense.objects.create(user=self.user, amount=Decimal("11"), date=date(2026, 3, 1), category=food)
+        Expense.objects.create(user=self.user, amount=Decimal("85"), date=date(2026, 3, 1), category=rent)
+        data = services.dashboard_data(self.user, today=date(2026, 3, 15))
+        self.assertEqual((data["budgets_over"], data["budgets_warning"]), (1, 1))
+
+    def test_dashboard_renders_with_data(self):
+        food = Category.objects.create(user=self.user, name="Food")
+        Expense.objects.create(user=self.user, amount=Decimal("12.34"), date=timezone.localdate(), category=food, description="Lunch")
+        resp = self.client.get(reverse("dashboard"))
+        self.assertContains(resp, "12.34")
+        self.assertContains(resp, "Lunch")
+        self.assertContains(resp, 'aria-current="page"')  # active nav link is marked
+
     def test_dashboard_renders_empty(self):
         self.assertEqual(self.client.get(reverse("dashboard")).status_code, 200)
 
