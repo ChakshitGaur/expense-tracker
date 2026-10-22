@@ -1,18 +1,28 @@
 {% extends "base.html" %}
 {% block title %}Categories{% endblock %}
 {% block content %}
-<div class="card" style="max-width:500px;margin:auto">
-  <h1>Categories</h1>
-  <form method="post">{% csrf_token %}
-    {{ form.as_p }}
-    <button>Add category</button>
-  </form>
-  <table>
-    {% for c in categories %}
-      <tr><td>{{ c.name }}</td><td class="num"><a class="btn danger" href="{% url 'category_delete' c.pk %}">Delete</a></td></tr>
-    {% empty %}
-      <tr><td class="muted">No categories yet.</td></tr>
-    {% endfor %}
-  </table>
+<div class="narrow" style="max-width:560px">
+  <div class="page-head"><div><h1>Categories</h1><div class="muted">Group your expenses, e.g. Food, Rent, Travel.</div></div></div>
+  <div class="card">
+    <form method="post">{% csrf_token %}
+      {{ form.as_p }}
+      <button>Add category</button>
+    </form>
+  </div>
+  <div class="card">
+    {% if categories %}
+      <div class="table-wrap">
+        <table>
+          <tbody>
+            {% for c in categories %}
+              <tr><td><span class="pill">{{ c.name }}</span></td><td class="num"><a class="btn danger small" href="{% url 'category_delete' c.pk %}">Delete</a></td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="empty"><span class="icon" aria-hidden="true">🏷️</span>No categories yet.</div>
+    {% endif %}
+  </div>
 </div>
 {% endblock %}

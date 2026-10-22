@@ -1,7 +1,7 @@
 import csv
 import io
 from datetime import datetime
-from decimal import ROUND_FLOOR, Decimal, InvalidOperation
+from decimal import ROUND_FLOOR, ROUND_HALF_UP, Decimal, InvalidOperation
 
 from django.db.models import Sum
 from django.db.models.functions import TruncMonth
@@ -98,9 +98,21 @@ def dashboard_data(user, today=None):
         m = add_months(start, i)
         trend.append({"month": m.strftime("%b %Y"), "total": float(sums.get(m, 0))})
 
+    # Month-over-month change; None when last month had no spending (no meaningful percentage).
+    last_month_total = (sums.get(add_months(this_month, -1)) or Decimal("0")).quantize(Decimal("0.01"))
+    month_change_percent = None
+    if last_month_total:
+        month_change_percent = int(
+            ((month_total - last_month_total) / last_month_total * 100).to_integral_value(rounding=ROUND_HALF_UP)
+        )
+
+    budgets = budget_status(user, today)
     return {
         "month_total": month_total, "by_category": by_category, "trend": trend, "recent": qs[:5],
-        "budgets": budget_status(user, today),
+        "budgets": budgets,
+        "last_month_total": last_month_total, "month_change_percent": month_change_percent,
+        "budgets_over": sum(1 for b in budgets if b["level"] == "over"),
+        "budgets_warning": sum(1 for b in budgets if b["level"] == "warning"),
     }
 
 

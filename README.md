@@ -25,7 +25,7 @@ A multi-user Django app to log expenses, organise them by category, and see wher
 - **Monthly budgets:** set a limit per category; progress bars on the dashboard turn amber at 80% and red when you go over, and adding an expense that crosses a threshold shows a warning message
 - **Dashboard:** this month's total, budget progress, spending by category (doughnut chart) and the last 6 months (bar chart)
 - **CSV import / export:** valid rows are imported even if others fail, and every bad row is reported with its line number
-- **Tested:** 43 automated tests covering permissions, validation, dashboard and budget maths, warnings and CSV round-trips, run on every pull request by GitHub Actions
+- **Tested:** 46 automated tests covering permissions, validation, dashboard and budget maths, warnings and CSV round-trips, run on every pull request by GitHub Actions
 
 ## Tech stack
 Python, Django 6, SQLite, Chart.js (loaded from a CDN), Django's built-in authentication.

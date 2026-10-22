@@ -1,35 +1,46 @@
 {% extends "base.html" %}
 {% block title %}Expenses{% endblock %}
 {% block content %}
+<div class="page-head">
+  <div><h1>Expenses</h1><div class="muted">{{ paginator.count }} expense{{ paginator.count|pluralize }}{% if month or selected_category %} matching your filters{% endif %}</div></div>
+  <a class="btn" href="{% url 'expense_add' %}">+ Add expense</a>
+</div>
 <div class="card">
-  <h1>Expenses</h1>
   <form method="get" class="filters">
-    <input type="month" name="month" value="{{ month }}">
-    <select name="category">
+    <input type="month" name="month" value="{{ month }}" aria-label="Month">
+    <select name="category" aria-label="Category">
       <option value="">All categories</option>
       {% for c in categories %}<option value="{{ c.id }}" {% if selected_category == c.id|stringformat:"s" %}selected{% endif %}>{{ c.name }}</option>{% endfor %}
     </select>
     <button>Filter</button>
-    <a class="btn secondary" href="{% url 'expense_list' %}">Reset</a>
-    <a class="btn" href="{% url 'expense_add' %}" style="margin-left:auto">+ Add</a>
+    {% if month or selected_category %}<a class="btn secondary" href="{% url 'expense_list' %}">Reset</a>{% endif %}
   </form>
-  <table>
-    <tr><th>Date</th><th>Category</th><th>Description</th><th class="num">Amount</th><th></th></tr>
-    {% for e in object_list %}
-      <tr>
-        <td>{{ e.date }}</td><td>{{ e.category|default:"—" }}</td><td>{{ e.description }}</td><td class="num">{{ e.amount }}</td>
-        <td class="actions"><a class="btn secondary" href="{% url 'expense_edit' e.pk %}">Edit</a><a class="btn danger" href="{% url 'expense_delete' e.pk %}">Delete</a></td>
-      </tr>
-    {% empty %}
-      <tr><td colspan="5" class="muted">No expenses found.</td></tr>
-    {% endfor %}
-  </table>
+  {% if object_list %}
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Date</th><th>Category</th><th>Description</th><th class="num">Amount</th><th><span class="sr-only">Actions</span></th></tr></thead>
+        <tbody>
+          {% for e in object_list %}
+            <tr>
+              <td class="nowrap muted">{{ e.date }}</td>
+              <td>{% if e.category %}<span class="pill">{{ e.category }}</span>{% else %}<span class="pill none">Uncategorized</span>{% endif %}</td>
+              <td>{{ e.description }}</td>
+              <td class="num amount">{{ e.amount }}</td>
+              <td><div class="actions"><a class="btn secondary small" href="{% url 'expense_edit' e.pk %}">Edit</a><a class="btn danger small" href="{% url 'expense_delete' e.pk %}">Delete</a></div></td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div class="empty"><span class="icon" aria-hidden="true">🔍</span>No expenses found.{% if not month and not selected_category %} <a href="{% url 'expense_add' %}">Add your first one.</a>{% endif %}</div>
+  {% endif %}
   {% if is_paginated %}
-    <p>
-      {% if page_obj.has_previous %}<a href="?page={{ page_obj.previous_page_number }}&month={{ month }}&category={{ selected_category }}">← Prev</a>{% endif %}
-      Page {{ page_obj.number }} of {{ paginator.num_pages }}
-      {% if page_obj.has_next %}<a href="?page={{ page_obj.next_page_number }}&month={{ month }}&category={{ selected_category }}">Next →</a>{% endif %}
-    </p>
+    <div class="pagination">
+      {% if page_obj.has_previous %}<a class="btn secondary small" href="?page={{ page_obj.previous_page_number }}&month={{ month }}&category={{ selected_category }}">← Prev</a>{% endif %}
+      <span class="muted">Page {{ page_obj.number }} of {{ paginator.num_pages }}</span>
+      {% if page_obj.has_next %}<a class="btn secondary small" href="?page={{ page_obj.next_page_number }}&month={{ month }}&category={{ selected_category }}">Next →</a>{% endif %}
+    </div>
   {% endif %}
 </div>
 {% endblock %}

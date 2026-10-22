@@ -1,11 +1,14 @@
 {% extends "base.html" %}
+{% block title %}Delete category{% endblock %}
 {% block content %}
-<div class="card" style="max-width:500px;margin:auto">
+<div class="card narrow">
   <h1>Delete category "{{ object.name }}"?</h1>
   <p class="muted">Expenses in this category are kept and become uncategorized.</p>
   <form method="post">{% csrf_token %}
-    <button class="danger">Yes, delete</button>
-    <a class="btn secondary" href="{% url 'category_list' %}">Cancel</a>
+    <div class="form-actions">
+      <button class="danger solid">Yes, delete</button>
+      <a class="btn secondary" href="{% url 'category_list' %}">Cancel</a>
+    </div>
   </form>
 </div>
 {% endblock %}

@@ -1,11 +1,15 @@
 {% extends "base.html" %}
+{% block title %}Delete expense{% endblock %}
 {% block content %}
-<div class="card" style="max-width:500px;margin:auto">
+<div class="card narrow">
   <h1>Delete expense?</h1>
-  <p>{{ object.date }} — {{ object.amount }} {{ object.description }}</p>
+  <p><strong>{{ object.amount }}</strong> on {{ object.date }}{% if object.description %} · {{ object.description }}{% endif %}</p>
+  <p class="muted">This can't be undone.</p>
   <form method="post">{% csrf_token %}
-    <button class="danger">Yes, delete</button>
-    <a class="btn secondary" href="{% url 'expense_list' %}">Cancel</a>
+    <div class="form-actions">
+      <button class="danger solid">Yes, delete</button>
+      <a class="btn secondary" href="{% url 'expense_list' %}">Cancel</a>
+    </div>
   </form>
 </div>
 {% endblock %}
