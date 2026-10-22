@@ -1,8 +1,9 @@
 name: Deploy
 
 # Runs after the Tests workflow passes on main (or by hand), builds the
-# production Docker image, checks that it starts and serves pages, and
-# publishes it to GitHub Container Registry (ghcr.io).
+# production Docker image, checks that it starts and serves pages,
+# publishes it to GitHub Container Registry (ghcr.io), then tells Render
+# to deploy that exact image.
 on:
   workflow_run:
     workflows: [Tests]
@@ -68,3 +69,18 @@ jobs:
         run: |
           docker push "$IMAGE:$SHA"
           docker push "$IMAGE:latest"
+
+      # The deploy hook URL is a secret (anyone with it can trigger deploys).
+      # Until it is added under Settings > Secrets and variables > Actions,
+      # this step is skipped with a notice and the image is still published.
+      - name: Deploy to Render
+        env:
+          RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+        run: |
+          if [ -z "$RENDER_DEPLOY_HOOK_URL" ]; then
+            echo "::notice::RENDER_DEPLOY_HOOK_URL is not set; skipping the Render deploy."
+            exit 0
+          fi
+          # imgURL pins the deploy to the image built from this commit, not whatever :latest is.
+          curl -fsS -X POST -o /dev/null -w "Render responded %{http_code}\n" \
+            "$RENDER_DEPLOY_HOOK_URL&imgURL=$(jq -rn --arg u "$IMAGE:$SHA" '$u|@uri')"

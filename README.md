@@ -70,7 +70,20 @@ Every push to `main` that passes the **Tests** workflow triggers the **Deploy** 
 
 1. builds the production Docker image (gunicorn + WhiteNoise for static files),
 2. starts it and checks that the login page and static files are served with `DEBUG` off,
-3. pushes it to GitHub Container Registry as `ghcr.io/chakshitgaur/expense-tracker:latest` and `:<commit sha>`.
+3. pushes it to GitHub Container Registry as `ghcr.io/chakshitgaur/expense-tracker:latest` and `:<commit sha>`,
+4. tells [Render](https://render.com) to deploy that exact image (skipped until the `RENDER_DEPLOY_HOOK_URL` secret is set).
+
+### One-time Render setup
+1. **Let Render pull the image.** On GitHub, open the `expense-tracker` package (your profile, **Packages**), then **Package settings** and set its visibility to **Public**. (Or keep it private and add a registry credential in Render using a GitHub token with `read:packages`.)
+2. **Create the service.** In Render: **New** > **Web Service** > **Existing image**, image URL `ghcr.io/chakshitgaur/expense-tracker:latest`.
+3. **Environment variables** for the service:
+   - `DJANGO_SECRET_KEY`: a long random string (Render's **Generate** button works)
+   - `DJANGO_BEHIND_HTTPS_PROXY`: `1`
+
+   The `*.onrender.com` host name is trusted automatically (Render sets `RENDER_EXTERNAL_HOSTNAME`). For a custom domain also set `DJANGO_ALLOWED_HOSTS` and `DJANGO_CSRF_TRUSTED_ORIGINS`.
+4. **Health check path:** `/accounts/login/`.
+5. **Keep the data (paid plans):** add a persistent disk mounted at `/app/data`. Without one, the SQLite database starts empty after every deploy.
+6. **Connect the pipeline.** In the service's **Settings**, copy the **Deploy Hook** URL. On GitHub go to **Settings** > **Secrets and variables** > **Actions** > **New repository secret**, name it `RENDER_DEPLOY_HOOK_URL`, and paste the URL. From then on, every passing push to `main` goes live on Render.
 
 Run the published image anywhere Docker runs:
 
