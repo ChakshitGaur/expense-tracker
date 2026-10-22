@@ -52,12 +52,6 @@ ALLOWED_HOSTS = [h.strip() for h in os.environ.get("DJANGO_ALLOWED_HOSTS", "loca
 # Full origins (scheme + host) allowed to submit forms, e.g. https://expenses.example.com.
 CSRF_TRUSTED_ORIGINS = [o.strip() for o in os.environ.get("DJANGO_CSRF_TRUSTED_ORIGINS", "").split(",") if o.strip()]
 
-# Render sets RENDER_EXTERNAL_HOSTNAME (e.g. expense-tracker.onrender.com); trust it automatically.
-RENDER_EXTERNAL_HOSTNAME = os.environ.get("RENDER_EXTERNAL_HOSTNAME")
-if RENDER_EXTERNAL_HOSTNAME:
-    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
-    CSRF_TRUSTED_ORIGINS.append(f"https://{RENDER_EXTERNAL_HOSTNAME}")
-
 # Behind a reverse proxy that terminates HTTPS, trust its X-Forwarded-Proto header.
 if os.environ.get("DJANGO_BEHIND_HTTPS_PROXY", "0") == "1":
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
